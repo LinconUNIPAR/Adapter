@@ -1,0 +1,166 @@
+activity_main.xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/etNomeAluno"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nome do Aluno" />
+
+    <EditText
+        android:id="@+id/etAreaAluno"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Área de Escolha" />
+
+    <Button
+        android:id="@+id/btnAdicionar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Adicionar Aluno"
+        android:layout_marginTop="8dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewAlunos"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="16dp"/>
+
+    <TextView
+        android:id="@+id/tvDataAtual"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Data Atual:"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/tvQuantidadeAlunos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Quantidade de Alunos: 0"
+        android:layout_marginTop="8dp" />
+
+    <Button
+        android:id="@+id/btnZerar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ZERAR"
+        android:layout_marginTop="16dp" />
+
+</LinearLayout>
+
+AlunoAdapter
+package com.seuprojeto
+
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+
+class AlunoAdapter(private val alunos: List<String>) : RecyclerView.Adapter<AlunoAdapter.AlunoViewHolder>() {
+
+    class AlunoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val tvAluno: TextView = view.findViewById(R.id.tvAluno)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlunoViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_aluno, parent, false)
+        return AlunoViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: AlunoViewHolder, position: Int) {
+        holder.tvAluno.text = alunos[position]
+    }
+
+    override fun getItemCount(): Int {
+        return alunos.size
+    }
+}
+
+item_aluno.xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/tvAluno"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nome do Aluno - Área de Escolha"
+        android:textSize="16sp" />
+</LinearLayout>
+
+MainActivity.kt
+package com.seuprojeto
+
+import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import java.text.SimpleDateFormat
+import java.util.*
+
+class MainActivity : AppCompatActivity() {
+
+    private val listaAlunos = mutableListOf<String>()
+    private lateinit var alunoAdapter: AlunoAdapter
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        val etNomeAluno = findViewById<EditText>(R.id.etNomeAluno)
+        val etAreaAluno = findViewById<EditText>(R.id.etAreaAluno)
+        val btnAdicionar = findViewById<Button>(R.id.btnAdicionar)
+        val tvDataAtual = findViewById<TextView>(R.id.tvDataAtual)
+        val tvQuantidadeAlunos = findViewById<TextView>(R.id.tvQuantidadeAlunos)
+        val btnZerar = findViewById<Button>(R.id.btnZerar)
+        val recyclerViewAlunos = findViewById<RecyclerView>(R.id.recyclerViewAlunos)
+
+        recyclerViewAlunos.layoutManager = LinearLayoutManager(this)
+        alunoAdapter = AlunoAdapter(listaAlunos)
+        recyclerViewAlunos.adapter = alunoAdapter
+
+        val dataAtual = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
+        tvDataAtual.text = "Data Atual: $dataAtual"
+
+        btnAdicionar.setOnClickListener {
+            val nome = etNomeAluno.text.toString()
+            val area = etAreaAluno.text.toString()
+
+            if (nome.isNotEmpty() && area.isNotEmpty()) {
+                listaAlunos.add("$nome - $area")
+                alunoAdapter.notifyDataSetChanged()  // Notifica o Adapter sobre mudanças na lista
+                etNomeAluno.text.clear()
+                etAreaAluno.text.clear()
+                atualizarQuantidade(tvQuantidadeAlunos)
+            }
+        }
+
+        btnZerar.setOnClickListener {
+            listaAlunos.clear()
+            alunoAdapter.notifyDataSetChanged()  // Notifica o Adapter sobre mudanças na lista
+            atualizarQuantidade(tvQuantidadeAlunos)
+        }
+    }
+
+    private fun atualizarQuantidade(tvQuantidadeAlunos: TextView) {
+        tvQuantidadeAlunos.text = "Quantidade de Alunos: ${listaAlunos.size}"
+    }
+}
